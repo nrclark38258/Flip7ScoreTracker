@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flip 7 Score Tracker</string>
+    <string name="setup_title">Setup Players</string>
+    <string name="player_name_hint">Enter player name</string>
+    <string name="add_player">Add Player</string>
+    <string name="start_game">Start Game</string>
+    <string name="round_label">Round %1$d</string>
+    <string name="player_name">Player Name</string>
+    <string name="round_score">Round Score</string>
+    <string name="total_score">Total Score</string>
+    <string name="points_to_200">To 200</string>
+    <string name="submit_round">Submit Round</string>
+    <string name="new_game">New Game</string>
+    <string name="winner_message">%1$s wins with %2$d points!</string>
+    <string name="error_player_name_empty">Player name cannot be empty</string>
+    <string name="error_min_players">Add at least 2 players to start</string>
+    <string name="error_invalid_score">Please enter valid scores for all players</string>
+    <string name="score_hint">0</string>
+</resources>
