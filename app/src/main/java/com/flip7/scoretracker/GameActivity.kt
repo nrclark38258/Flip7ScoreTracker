@@ -12,6 +12,7 @@ class GameActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityGameBinding
     private lateinit var adapter: GameScoreAdapter
+    private lateinit var historyAdapter: RoundHistoryAdapter
     private lateinit var gameState: GameState
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +36,14 @@ class GameActivity : AppCompatActivity() {
         adapter = GameScoreAdapter(gameState.players)
         binding.gameScoresRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.gameScoresRecyclerView.adapter = adapter
+
+        historyAdapter = RoundHistoryAdapter(
+            rounds = emptyList(),
+            players = gameState.players,
+            onEditRound = { roundNumber -> showEditRoundDialog(roundNumber) }
+        )
+        binding.roundHistoryRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.roundHistoryRecyclerView.adapter = historyAdapter
     }
 
     private fun setupButtons() {
@@ -58,6 +67,7 @@ class GameActivity : AppCompatActivity() {
         gameState.addRoundScores(roundScores)
         adapter.clearRoundScores()
         adapter.updateScores()
+        updateRoundHistory()
         updateUI()
 
         if (gameState.isGameOver) {
@@ -68,6 +78,47 @@ class GameActivity : AppCompatActivity() {
     private fun updateUI() {
         binding.roundNumberText.text = getString(R.string.round_label, gameState.currentRound)
         binding.submitRoundButton.isEnabled = !gameState.isGameOver
+    }
+
+    private fun updateRoundHistory() {
+        historyAdapter = RoundHistoryAdapter(
+            rounds = gameState.getAllRounds(),
+            players = gameState.players,
+            onEditRound = { roundNumber -> showEditRoundDialog(roundNumber) }
+        )
+        binding.roundHistoryRecyclerView.adapter = historyAdapter
+        binding.roundHistoryRecyclerView.scrollToPosition(historyAdapter.itemCount - 1)
+    }
+
+    private fun showEditRoundDialog(roundNumber: Int) {
+        val round = gameState.getAllRounds().getOrNull(roundNumber - 1) ?: return
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_edit_round, null)
+        val dialogTitle = dialogView.findViewById<android.widget.TextView>(R.id.dialogTitle)
+        val recyclerView = dialogView.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.editScoresRecyclerView)
+
+        dialogTitle.text = "Edit Round $roundNumber"
+
+        val editableScores = gameState.players.map { player ->
+            EditableScore(player.name, round.getScoreForPlayer(player.name))
+        }.toMutableList()
+
+        val editAdapter = EditScoreAdapter(editableScores)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = editAdapter
+
+        AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setPositiveButton("Save") { _, _ ->
+                val updatedScores = editAdapter.getUpdatedScores()
+                gameState.updateRound(roundNumber, updatedScores)
+                adapter.updateScores()
+                updateRoundHistory()
+                updateUI()
+                Toast.makeText(this, "Round $roundNumber updated", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun showWinnerDialog() {
@@ -101,6 +152,7 @@ class GameActivity : AppCompatActivity() {
         gameState.reset()
         adapter.clearRoundScores()
         adapter.updateScores()
+        updateRoundHistory()
         updateUI()
     }
 
