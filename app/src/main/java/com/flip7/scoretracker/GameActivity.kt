@@ -3,6 +3,7 @@ package com.flip7.scoretracker
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,7 +24,16 @@ class GameActivity : AppCompatActivity() {
         initializeGame()
         setupRecyclerView()
         setupButtons()
+        setupBackPressHandler()
         updateUI()
+    }
+
+    private fun setupBackPressHandler() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                showNewGameDialog()
+            }
+        })
     }
 
     private fun initializeGame() {
@@ -154,9 +164,5 @@ class GameActivity : AppCompatActivity() {
         adapter.updateScores()
         updateRoundHistory()
         updateUI()
-    }
-
-    override fun onBackPressed() {
-        showNewGameDialog()
     }
 }
