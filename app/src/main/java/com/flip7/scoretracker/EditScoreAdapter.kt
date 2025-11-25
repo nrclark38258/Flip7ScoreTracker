@@ -1,5 +1,6 @@
 package com.flip7.scoretracker
 
+import android.annotation.SuppressLint
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -29,6 +30,7 @@ class EditScoreAdapter(
         return ViewHolder(view)
     }
 
+    @SuppressLint("RecyclerView")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val editableScore = scores[position]
         holder.playerNameText.text = editableScore.playerName
@@ -40,8 +42,8 @@ class EditScoreAdapter(
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                val currentPosition = holder.bindingAdapterPosition
-                if (currentPosition != -1) {
+                val currentPosition = holder.adapterPosition
+                if (currentPosition != RecyclerView.NO_POSITION) {
                     val newScore = s?.toString()?.toIntOrNull() ?: 0
                     scores[currentPosition].score = newScore
                 }

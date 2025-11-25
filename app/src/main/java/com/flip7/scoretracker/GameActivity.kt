@@ -97,7 +97,9 @@ class GameActivity : AppCompatActivity() {
             onEditRound = { roundNumber -> showEditRoundDialog(roundNumber) }
         )
         binding.roundHistoryRecyclerView.adapter = historyAdapter
-        binding.roundHistoryRecyclerView.scrollToPosition(historyAdapter.itemCount - 1)
+        if (historyAdapter.itemCount > 0) {
+            binding.roundHistoryRecyclerView.scrollToPosition(historyAdapter.itemCount - 1)
+        }
     }
 
     private fun showEditRoundDialog(roundNumber: Int) {
