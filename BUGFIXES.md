@@ -2,7 +2,44 @@
 
 ## Issues Fixed
 
-### 1. ✅ Lint Error: Missing super.onBackPressed()
+### 1. ✅ Lint Error: RecyclerView Position in Callback
+
+**Problem:**
+```
+Error: Do not treat position as fixed; only use immediately and call holder.getAdapterPosition() to look it up later [RecyclerView]
+```
+
+**Root Cause:**
+In `EditScoreAdapter`, the `position` parameter from `onBindViewHolder` was being captured and used inside the `TextWatcher.afterTextChanged` callback. This is unsafe because the position can become stale if the list changes.
+
+**Solution:**
+Use `holder.bindingAdapterPosition` inside the callback to get the current position:
+
+**Before:**
+```kotlin
+override fun afterTextChanged(s: Editable?) {
+    val newScore = s?.toString()?.toIntOrNull() ?: 0
+    scores[position].score = newScore  // ❌ position can be stale
+}
+```
+
+**After:**
+```kotlin
+override fun afterTextChanged(s: Editable?) {
+    val currentPosition = holder.bindingAdapterPosition
+    if (currentPosition != -1) {  // -1 means no position
+        val newScore = s?.toString()?.toIntOrNull() ?: 0
+        scores[currentPosition].score = newScore  // ✅ Always current
+    }
+}
+```
+
+**Files Changed:**
+- `EditScoreAdapter.kt` - Fixed position usage in TextWatcher callback
+
+---
+
+### 2. ✅ Lint Error: Missing super.onBackPressed()
 
 **Problem:**
 ```
@@ -38,7 +75,7 @@ private fun setupBackPressHandler() {
 
 ---
 
-### 2. ✅ Dark Mode: Invisible Text on Round History
+### 3. ✅ Dark Mode: Invisible Text on Round History
 
 **Problem:**
 In dark mode, the round history cards had white text on light gray background, making them unreadable.
@@ -114,6 +151,7 @@ The build should now pass all lint checks:
 
 | File | Change | Reason |
 |------|--------|--------|
+| `EditScoreAdapter.kt` | Use `bindingAdapterPosition` in callback | Fix RecyclerView lint error |
 | `GameActivity.kt` | Replaced `onBackPressed()` | Fix lint error, use modern API |
 | `values-night/colors.xml` | **NEW** - Dark colors | Support dark mode |
 | `values-night/themes.xml` | **NEW** - Dark theme | Material dark theme |
