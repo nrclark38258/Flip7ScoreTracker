@@ -37,14 +37,14 @@ jobs:
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: Flip7ScoreTracker-debug
+        path: app/build/outputs/apk/debug/Flip7ScoreTracker-debug-v*.apk
 
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-release-unsigned
-        path: app/build/outputs/apk/release/app-release-unsigned.apk
+        name: Flip7ScoreTracker-release
+        path: app/build/outputs/apk/release/Flip7ScoreTracker-release-v*.apk
 
   release:
     needs: build
@@ -81,5 +81,5 @@ jobs:
         name: Release v${{ steps.version.outputs.VERSION }}-${{ github.run_number }}
         draft: false
         prerelease: false
-        files: app/build/outputs/apk/release/app-release-unsigned.apk
+        files: app/build/outputs/apk/release/Flip7ScoreTracker-release-v*.apk
         token: ${{ secrets.GITHUB_TOKEN }}
