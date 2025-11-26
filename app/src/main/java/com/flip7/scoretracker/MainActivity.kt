@@ -20,6 +20,19 @@ class MainActivity : AppCompatActivity() {
 
         setupRecyclerView()
         setupButtons()
+        displayVersion()
+    }
+
+    private fun displayVersion() {
+        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+        val versionName = packageInfo.versionName
+        val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            packageInfo.longVersionCode
+        } else {
+            @Suppress("DEPRECATION")
+            packageInfo.versionCode.toLong()
+        }
+        binding.versionText.text = "v$versionName (build $versionCode)"
     }
 
     private fun setupRecyclerView() {

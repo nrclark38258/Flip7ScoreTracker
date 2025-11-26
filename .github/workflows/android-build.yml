@@ -70,16 +70,17 @@ jobs:
     - name: Build Debug APK
       run: ./gradlew assembleDebug
 
-    - name: Get version name
-      id: version
-      run: echo "VERSION=$(grep 'versionName = ' app/build.gradle.kts | head -1 | awk -F'\"' '{print $2}')" >> $GITHUB_OUTPUT
+    - name: Rename APK with full version
+      run: |
+        mv app/build/outputs/apk/debug/Flip7ScoreTracker-debug-v*.apk \
+           app/build/outputs/apk/debug/Flip7ScoreTracker-v1.0.${{ github.run_number }}.apk
 
     - name: Create Release and Upload APK
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v${{ steps.version.outputs.VERSION }}-${{ github.run_number }}
-        name: Release v${{ steps.version.outputs.VERSION }}-${{ github.run_number }}
+        tag_name: v1.0.${{ github.run_number }}
+        name: Release v1.0.${{ github.run_number }}
         draft: false
         prerelease: false
-        files: app/build/outputs/apk/debug/Flip7ScoreTracker-debug-v*.apk
+        files: app/build/outputs/apk/debug/Flip7ScoreTracker-v1.0.${{ github.run_number }}.apk
         token: ${{ secrets.GITHUB_TOKEN }}
