@@ -67,8 +67,8 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Build Release APK
-      run: ./gradlew assembleRelease
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug
 
     - name: Get version name
       id: version
@@ -81,5 +81,5 @@ jobs:
         name: Release v${{ steps.version.outputs.VERSION }}-${{ github.run_number }}
         draft: false
         prerelease: false
-        files: app/build/outputs/apk/release/Flip7ScoreTracker-release-v*.apk
+        files: app/build/outputs/apk/debug/Flip7ScoreTracker-debug-v*.apk
         token: ${{ secrets.GITHUB_TOKEN }}
