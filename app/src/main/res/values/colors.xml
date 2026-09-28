@@ -11,4 +11,6 @@
     <color name="red_500">#FFF44336</color>
     <color name="light_gray">#FFF5F5F5</color>
     <color name="medium_gray">#FFE0E0E0</color>
+    <color name="card_number_color">#FF1976D2</color>
+    <color name="card_modifier_color">#FFEF6C00</color>
 </resources>

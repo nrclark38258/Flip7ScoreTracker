@@ -17,4 +17,12 @@
     <string name="error_min_players">Add at least 2 players to start</string>
     <string name="error_invalid_score">Please enter valid scores for all players</string>
     <string name="score_hint">0</string>
+    <string name="keypad_number_cards_label">Number Cards</string>
+    <string name="keypad_modifier_cards_label">Modifiers</string>
+    <string name="keypad_manual_label">Manual</string>
+    <string name="keypad_manual_hint">Override</string>
+    <string name="keypad_clear">Clear</string>
+    <string name="keypad_done">Done</string>
+    <string name="keypad_total_label">Total: %1$d</string>
+    <string name="keypad_flip7_bonus">Flip 7! +15 bonus</string>
 </resources>

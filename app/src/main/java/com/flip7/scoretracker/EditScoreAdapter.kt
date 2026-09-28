@@ -1,8 +1,6 @@
 package com.flip7.scoretracker
 
 import android.annotation.SuppressLint
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,11 +10,14 @@ import androidx.recyclerview.widget.RecyclerView
 
 data class EditableScore(
     val playerName: String,
-    var score: Int
+    var score: Int,
+    var cardSelection: CardSelection? = null,
+    var manualOverride: Int? = null
 )
 
 class EditScoreAdapter(
-    private val scores: MutableList<EditableScore>
+    private val scores: MutableList<EditableScore>,
+    private val onScoreFieldClick: (String, CardSelection?, Int?) -> Unit
 ) : RecyclerView.Adapter<EditScoreAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -36,27 +37,35 @@ class EditScoreAdapter(
         holder.playerNameText.text = editableScore.playerName
         holder.scoreEditText.setText(editableScore.score.toString())
 
-        holder.scoreEditText.removeTextChangedListener(holder.scoreEditText.tag as? TextWatcher)
-
-        val textWatcher = object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                val currentPosition = holder.adapterPosition
-                if (currentPosition != RecyclerView.NO_POSITION) {
-                    val newScore = s?.toString()?.toIntOrNull() ?: 0
-                    scores[currentPosition].score = newScore
-                }
+        holder.scoreEditText.setOnClickListener {
+            val currentPosition = holder.adapterPosition
+            if (currentPosition != RecyclerView.NO_POSITION) {
+                val current = scores[currentPosition]
+                onScoreFieldClick(current.playerName, current.cardSelection, current.manualOverride)
             }
         }
-
-        holder.scoreEditText.addTextChangedListener(textWatcher)
-        holder.scoreEditText.tag = textWatcher
     }
 
     override fun getItemCount(): Int = scores.size
 
+    fun setScoreForPlayer(playerName: String, total: Int, selection: CardSelection?, manualOverride: Int?) {
+        val index = scores.indexOfFirst { it.playerName == playerName }
+        if (index == -1) return
+        scores[index].score = total
+        scores[index].cardSelection = selection
+        scores[index].manualOverride = manualOverride
+        notifyItemChanged(index)
+    }
+
     fun getUpdatedScores(): Map<String, Int> {
         return scores.associate { it.playerName to it.score }
+    }
+
+    fun getUpdatedCardSelections(): Map<String, CardSelection?> {
+        return scores.associate { it.playerName to it.cardSelection }
+    }
+
+    fun getUpdatedManualOverrides(): Map<String, Int?> {
+        return scores.associate { it.playerName to it.manualOverride }
     }
 }

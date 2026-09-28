@@ -1,7 +1,5 @@
 package com.flip7.scoretracker
 
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,10 +8,13 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class GameScoreAdapter(
-    private val players: List<Player>
+    private val players: List<Player>,
+    private val onScoreFieldClick: (Player, CardSelection?, Int?) -> Unit
 ) : RecyclerView.Adapter<GameScoreAdapter.GameScoreViewHolder>() {
 
     private val roundScores = mutableMapOf<Player, Int>()
+    private val cardSelections = mutableMapOf<Player, CardSelection>()
+    private val manualOverrides = mutableMapOf<Player, Int>()
 
     class GameScoreViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val playerNameText: TextView = itemView.findViewById(R.id.playerNameText)
@@ -34,28 +35,41 @@ class GameScoreAdapter(
         holder.totalScoreText.text = player.totalScore.toString()
         holder.pointsToWinText.text = player.getPointsToWin().toString()
 
-        holder.roundScoreInput.setText("")
-        holder.roundScoreInput.removeTextChangedListener(holder.roundScoreInput.tag as? TextWatcher)
+        val total = roundScores[player]
+        holder.roundScoreInput.setText(total?.toString() ?: "")
 
-        val textWatcher = object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                val score = s?.toString()?.toIntOrNull() ?: 0
-                roundScores[player] = score
-            }
+        holder.roundScoreInput.setOnClickListener {
+            onScoreFieldClick(player, cardSelections[player], manualOverrides[player])
         }
-
-        holder.roundScoreInput.addTextChangedListener(textWatcher)
-        holder.roundScoreInput.tag = textWatcher
     }
 
     override fun getItemCount(): Int = players.size
 
+    fun setScoreForPlayer(player: Player, total: Int, selection: CardSelection?, manualOverride: Int?) {
+        roundScores[player] = total
+        if (selection == null) {
+            cardSelections.remove(player)
+        } else {
+            cardSelections[player] = selection
+        }
+        if (manualOverride == null) {
+            manualOverrides.remove(player)
+        } else {
+            manualOverrides[player] = manualOverride
+        }
+        notifyItemChanged(players.indexOf(player))
+    }
+
     fun getRoundScores(): Map<Player, Int> = roundScores.toMap()
+
+    fun getCardSelections(): Map<Player, CardSelection> = cardSelections.toMap()
+
+    fun getManualOverrides(): Map<Player, Int> = manualOverrides.toMap()
 
     fun clearRoundScores() {
         roundScores.clear()
+        cardSelections.clear()
+        manualOverrides.clear()
         notifyDataSetChanged()
     }
 

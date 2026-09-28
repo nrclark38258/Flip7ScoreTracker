@@ -7,15 +7,26 @@ data class GameState(
     var winner: Player? = null,
     private val rounds: MutableList<Round> = mutableListOf()
 ) {
-    fun addRoundScores(scores: Map<Player, Int>) {
+    fun addRoundScores(
+        scores: Map<Player, Int>,
+        cardSelections: Map<Player, CardSelection> = emptyMap(),
+        manualOverrides: Map<Player, Int> = emptyMap()
+    ) {
         val round = Round(currentRound)
         scores.forEach { (player, score) ->
             player.addRoundScore(score)
             round.setScoreForPlayer(player.name, score)
         }
+        cardSelections.forEach { (player, selection) ->
+            round.setCardSelectionForPlayer(player.name, selection)
+        }
+        manualOverrides.forEach { (player, manualOverride) ->
+            round.setManualOverrideForPlayer(player.name, manualOverride)
+        }
         rounds.add(round)
 
         checkForWinner()
+        sortPlayersByScore()
 
         if (!isGameOver) {
             currentRound++
@@ -24,7 +35,12 @@ data class GameState(
 
     fun getAllRounds(): List<Round> = rounds.toList()
 
-    fun updateRound(roundNumber: Int, newScores: Map<String, Int>) {
+    fun updateRound(
+        roundNumber: Int,
+        newScores: Map<String, Int>,
+        newCardSelections: Map<String, CardSelection?> = emptyMap(),
+        newManualOverrides: Map<String, Int?> = emptyMap()
+    ) {
         if (roundNumber < 1 || roundNumber > rounds.size) return
 
         val roundIndex = roundNumber - 1
@@ -33,9 +49,20 @@ data class GameState(
         newScores.forEach { (playerName, newScore) ->
             round.setScoreForPlayer(playerName, newScore)
         }
+        newCardSelections.forEach { (playerName, selection) ->
+            round.setCardSelectionForPlayer(playerName, selection)
+        }
+        newManualOverrides.forEach { (playerName, manualOverride) ->
+            round.setManualOverrideForPlayer(playerName, manualOverride)
+        }
 
         recalculateTotals()
         checkForWinner()
+        sortPlayersByScore()
+    }
+
+    private fun sortPlayersByScore() {
+        players.sortByDescending { it.totalScore }
     }
 
     private fun recalculateTotals() {

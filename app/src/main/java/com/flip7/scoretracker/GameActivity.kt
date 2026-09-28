@@ -43,7 +43,11 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = GameScoreAdapter(gameState.players)
+        adapter = GameScoreAdapter(gameState.players) { player, currentSelection, currentManualOverride ->
+            openCardKeypad(player.name, currentSelection, currentManualOverride) { total, selection, manualOverride ->
+                adapter.setScoreForPlayer(player, total, selection, manualOverride)
+            }
+        }
         binding.gameScoresRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.gameScoresRecyclerView.adapter = adapter
 
@@ -67,14 +71,10 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun submitRound() {
-        val roundScores = adapter.getRoundScores()
+        val enteredScores = adapter.getRoundScores()
+        val roundScores = gameState.players.associateWith { player -> enteredScores[player] ?: 0 }
 
-        if (roundScores.size != gameState.players.size) {
-            Toast.makeText(this, R.string.error_invalid_score, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        gameState.addRoundScores(roundScores)
+        gameState.addRoundScores(roundScores, adapter.getCardSelections(), adapter.getManualOverrides())
         adapter.clearRoundScores()
         adapter.updateScores()
         updateRoundHistory()
@@ -112,10 +112,20 @@ class GameActivity : AppCompatActivity() {
         dialogTitle.text = "Edit Round $roundNumber"
 
         val editableScores = gameState.players.map { player ->
-            EditableScore(player.name, round.getScoreForPlayer(player.name))
+            EditableScore(
+                player.name,
+                round.getScoreForPlayer(player.name),
+                round.getCardSelectionForPlayer(player.name),
+                round.getManualOverrideForPlayer(player.name)
+            )
         }.toMutableList()
 
-        val editAdapter = EditScoreAdapter(editableScores)
+        lateinit var editAdapter: EditScoreAdapter
+        editAdapter = EditScoreAdapter(editableScores) { playerName, currentSelection, currentManualOverride ->
+            openCardKeypad(playerName, currentSelection, currentManualOverride) { total, selection, manualOverride ->
+                editAdapter.setScoreForPlayer(playerName, total, selection, manualOverride)
+            }
+        }
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = editAdapter
 
@@ -123,7 +133,9 @@ class GameActivity : AppCompatActivity() {
             .setView(dialogView)
             .setPositiveButton("Save") { _, _ ->
                 val updatedScores = editAdapter.getUpdatedScores()
-                gameState.updateRound(roundNumber, updatedScores)
+                val updatedSelections = editAdapter.getUpdatedCardSelections()
+                val updatedManualOverrides = editAdapter.getUpdatedManualOverrides()
+                gameState.updateRound(roundNumber, updatedScores, updatedSelections, updatedManualOverrides)
                 adapter.updateScores()
                 updateRoundHistory()
                 updateUI()
@@ -131,6 +143,20 @@ class GameActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun openCardKeypad(
+        playerName: String,
+        currentSelection: CardSelection?,
+        currentManualOverride: Int?,
+        onConfirm: (Int, CardSelection?, Int?) -> Unit
+    ) {
+        val keypad = CardKeypadBottomSheet()
+        keypad.playerName = playerName
+        keypad.initialSelection = currentSelection
+        keypad.initialManualOverride = currentManualOverride
+        keypad.onConfirm = onConfirm
+        keypad.show(supportFragmentManager, "card_keypad")
     }
 
     private fun showWinnerDialog() {
